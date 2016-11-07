@@ -2,11 +2,16 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
 
 	"github.com/thomersch/grafana-vvo-source/source"
+)
+
+var (
+	addr = flag.String("addr", ":8999", "listening address")
 )
 
 type responseTable struct {
@@ -20,9 +25,7 @@ type requestData struct {
 }
 
 func main() {
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println(r)
-	})
+	flag.Parse()
 
 	http.HandleFunc("/search", func(w http.ResponseWriter, r *http.Request) {
 		// This is not a good handling. But the Simple JSON plugin gives up if there are too many results.
@@ -72,5 +75,8 @@ func main() {
 		json.NewEncoder(w).Encode(&rtls)
 	})
 
-	http.ListenAndServe(":8999", nil)
+	log.Printf("Starting to listen on %v...", *addr)
+	if err := http.ListenAndServe(*addr, nil); err != nil {
+		log.Fatal(err)
+	}
 }
